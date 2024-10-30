@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabela</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/1.5.1/q.min.js"></script>
+    <script src="~/Scripts/knockout-3.5.1.js"></script>
+    <script src="~/Scripts/breeze.min.js"></script> 
+</head>
+<body>
+    <div class="jumbotron">
+        <h1>Cadastro de novo membro TOTVS jurITis</h1>
+        <p class="lead">Cadastre-se para receber todas as novidades do universo TOTVS</p>
+    </div>
+
+    <button id="gerarTabela" type="submit" class="btn btn-primary">Gerar tabela</button>
+
+    <table id="usersTable" class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Sobrenome</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaAjax"></tbody>
+    </table>
+
+    <h2>Lista pelo Breeze</h2>
+    <table id="usersTable" class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Sobrenome</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: results">
+            <tr>
+                <td data-bind="text: ID"></td>
+                <td data-bind="text: Nome"></td>
+                <td data-bind="text: Sobrenome"></td>
+                <td data-bind="text: Email"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        //breeze.config.setQ(Q);
+
+        $(document).ready(function () {
+            $("#gerarTabela").click(function () {
+                $.ajax({
+                    url: '@Url.Action("GetUsers", "Home")',
+                    type: 'GET',
+                    success: function (data) {
+                        var usersTableBody = $("#tabelaAjax");
+                        usersTableBody.empty();
+                        $.each(data, function (index, user) {
+                            usersTableBody.append(
+                                $("<tr>")
+                                    .append($("<td>").text(user.ID))
+                                    .append($("<td>").text(user.Nome))
+                                    .append($("<td>").text(user.Sobrenome))
+                                    .append($("<td>").text(user.Email))
+                            );
+                        });
+                    }
+                });
+            });
+
+            
+            function ViewModel() {
+                var self = this;
+                self.results = ko.observableArray([]);
+
+                
+                self.loadData = function () {
+                    var manager = new breeze.EntityManager('/breeze/BreezeApi');
+                    var query = new breeze.EntityQuery().from("Usuario");
+
+                    manager.executeQuery(query).then(function (data) {
+                        self.results(data.results);  
+                    }).fail(function (e) {
+                        alert("Erro ao carregar dados: " + e);
+                    });
+                };
+
+                // Carrega os dados ao iniciar
+                self.loadData();
+            }
+
+            ko.applyBindings(new ViewModel());
+        });
+    </script>
+</body>
+</html>

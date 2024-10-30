@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+
+    @model FormularioCadastroTOTVS.Models.Usuario
+
+    @{
+        ViewBag.Title = "Cadastrar Usuário Dinamicamente";
+    }
+
+    @if (TempData["Mensagem"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Mensagem"]
+        </div>
+    }
+
+    <h2>@ViewBag.Title</h2>
+
+    <form id="userRegistrationForm">
+        <div class="mb-3">
+            <label for="Nome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="Nome">
+            <div class="text-danger" id="NomeError"></div>
+        </div>
+        <div class="mb-3">
+            <label for="Sobrenome" class="form-label">Sobrenome</label>
+            <input type="text" class="form-control" id="Sobrenome">
+            <div class="text-danger" id="SobrenomeError"></div>
+        </div>
+        <div class="mb-3">
+            <label for="Email" class="form-label">Email</label>
+            <input type="text" class="form-control" id="Email">
+            <div class="text-danger" id="EmailError"></div>
+        </div>
+        <div class="mb-3">
+            <label for="DataNascimento" class="form-label">Data de Nascimento</label>
+            <input type="date" class="form-control" id="DataNascimento">
+            <div class="text-danger" id="DataNascimentoError"></div>
+        </div>
+        <div class="mb-3">
+            <label for="Senha" class="form-label">Senha</label>
+            <input type="password" class="form-control" id="Senha">
+            <div class="text-danger" id="SenhaError"></div>
+        </div>
+        <div class="mb-3">
+            <label for="SenhaConfirmacao" class="form-label">Confirmação de Senha</label>
+            <input type="password" class="form-control" id="SenhaConfirmacao"> 
+            <div class="text-danger" id="SenhaConfirmacaoError"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            $("#userRegistrationForm").submit(function (event) {
+                event.preventDefault();
+
+                $('.text-danger').text(''); 
+
+                // Captura os valores dos campos
+                var Nome = $('#Nome').val().trim();
+                var Sobrenome = $('#Sobrenome').val().trim();
+                var Email = $('#Email').val().trim();
+                var DataNascimento = $('#DataNascimento').val().trim();
+                var Senha = $('#Senha').val();
+                var SenhaConfirmacao = $('#SenhaConfirmacao').val();
+
+                var isValid = true;
+
+                // Validação do email com regexp não foi possível por incompatibilidade com o "arroba" do ASP.NET MVC
+                if (!Nome) {
+                    $('#NomeError').text('O nome é obrigatório.');
+                    isValid = false;
+                }
+                if (!Sobrenome) {
+                    $('#SobrenomeError').text('O sobrenome é obrigatório.');
+                    isValid = false;
+                }
+                if (!Email) {
+                    $('#EmailError').text('O email é obrigatório.');
+                    isValid = false;
+                } 
+                if (!DataNascimento) {
+                    $('#DataNascimentoError').text('A data de nascimento é obrigatória.');
+                    isValid = false;
+                }
+                if (!Senha) {
+                    $('#SenhaError').text('A senha é obrigatória.');
+                    isValid = false;
+                } else if (Senha.length < 6) {
+                    $('#SenhaError').text('A senha deve ter no mínimo 6 caracteres.');
+                    isValid = false;
+                }
+                if (Senha !== SenhaConfirmacao) {
+                    $('#SenhaConfirmacaoError').text('As senhas não correspondem.');
+                    isValid = false;
+                }
+
+                if (isValid) {
+                    var formData = {
+                        Nome: Nome,
+                        Sobrenome: Sobrenome,
+                        Email: Email,
+                        DataNascimento: DataNascimento,
+                        Senha: Senha,
+                        SenhaConfirmacao: SenhaConfirmacao
+                    };
+
+                    $.ajax({
+                        url: '@Url.Action("CreateDynamic", "Home")',
+                        type: 'POST',
+                        data: JSON.stringify(formData),
+                        contentType: 'application/json',
+                        success: function (response) {
+                            if (response.success) {
+                                alert("Usuário registrado com sucesso!");
+                                $('#userRegistrationForm')[0].reset();
+                            } else {
+                                alert("Erro ao registrar usuário: " + response.message);
+                            }
+                        },
+                        error: function (error) {
+                            console.error("Erro na requisição AJAX:", error);
+                            alert("Ocorreu um erro durante o registro. Tente novamente mais tarde.");
+                        }
+                    });
+                }
+            });           
+        });
+    </script>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+    }
+
+</body>
+</html>
