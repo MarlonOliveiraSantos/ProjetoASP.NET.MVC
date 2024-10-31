@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>KnockoutJS Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="~/Scripts/knockout-3.5.1.js"></script>
+
+</head>
+<body>
+    <select data-bind="options: categorias, value: categoriaSelecionada, optionsCaption: 'Todos'"></select>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">
+                    Produto
+                </th>
+                <th scope="col">
+                    Preço
+                </th>
+                <th scope="col">
+                    Categoria
+                </th>
+                <th scope="col">
+                    Ações
+                </th>
+
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: produtosFiltrados">
+            <tr scope="row">
+                <td data-bind="text: nome"></td>
+                <td data-bind="text: preco"></td>
+                <td data-bind="text: categoria"></td>
+                <td><button data-bind="click: $parent.adicionar" class="alert-success">Adicionar ao carrinho</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Seu carrinho</h2>
+    <p>Total de produtos: <span data-bind="text: pedidos().length"></span></p>
+    <p>Total da pagar: <span data-bind="text: somaPedidos()"></span></p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: pedidos">
+            <tr>
+                <td data-bind="text: nome"></td>
+                <td data-bind="text: preco"></td>
+                <td><button data-bind="click: $parent.remover" class="alert-danger">Remover</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function viewModel() {
+            var self = this
+
+            self.categorias = ["Eletrônicos", "Materiais de Limpeza", "Roupas"]
+            self.categoriaSelecionada = ko.observable()
+            self.pedidos = ko.observableArray()
+            self.produtos = ko.observableArray([
+                {
+                    nome: 'Bermuda',
+                    preco: 10,
+                    categoria: 'Roupas'
+                }, {
+                    nome: 'Terno',
+                    preco: 300.22,
+                    categoria: 'Roupas',
+                }, {
+                    nome: 'Ypê',
+                    preco: 5,
+                    categoria: 'Materiais de Limpeza',
+                }, {
+                    nome: 'Alcool',
+                    preco: 15.54,
+                    categoria: 'Materiais de Limpeza',
+                }, {
+                    nome: 'Celular',
+                    preco: 1000,
+                    categoria: 'Eletrônicos',
+                }, {
+                    nome: 'Monitor',
+                    preco: 700,
+                    categoria: 'Eletrônicos',
+                }])
+
+            self.produtosFiltrados = ko.computed(function () {
+                if (!self.categoriaSelecionada()) {
+                    return self.produtos();
+                } else {
+                    return ko.utils.arrayFilter(self.produtos(), function (produto) {
+                        return produto.categoria === self.categoriaSelecionada();
+                    });
+                }
+            });
+
+            self.somaPedidos = ko.computed(function () {
+                return self.pedidos().reduce((soma,produto) => soma + produto.preco, 0)
+            })
+
+            self.adicionar = function (produto) {
+                self.pedidos.push({ ...produto });
+            }
+
+            self.remover = function (produto) {
+                self.pedidos.remove(produto)
+            }
+        }
+
+        $(document).ready(function () {
+            ko.applyBindings(new viewModel());
+        });
+    </script>
+
+</body>
+</html>
